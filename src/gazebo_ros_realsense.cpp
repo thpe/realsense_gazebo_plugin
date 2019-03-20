@@ -1,5 +1,6 @@
 #include "realsense_gazebo_plugin/gazebo_ros_realsense.h"
 #include <sensor_msgs/fill_image.h>
+#include <ros/console.h>
 
 namespace
 {
@@ -34,11 +35,19 @@ void GazeboRosRealsense::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 
   RealSensePlugin::Load(_model, _sdf);
 
-  this->rosnode_ = new ros::NodeHandle("/realsense");
+  prefix_ = "";
+  if (!_sdf->HasElement("prefix")) {
+      std::cout << "Missing parameter <prefix> in PluginName, default to 'empty string'" << std::endl;
+  } else {
+    prefix_ = _sdf->GetElement("prefix")->Get< std::string >();
+  }
+  topic_ = prefix_+"realsense";
+
+  ROS_INFO_STREAM("Realsense Gazebo ROS plugin topic: " << topic_);
+  this->rosnode_ = new ros::NodeHandle(topic_);
 
   // initialize camera_info_manager
-  this->camera_info_manager_.reset(
-    new camera_info_manager::CameraInfoManager(*this->rosnode_, "realsense"));
+  this->camera_info_manager_.reset(new camera_info_manager::CameraInfoManager(*this->rosnode_));
 
   this->itnode_ = new image_transport::ImageTransport(*this->rosnode_);
 
@@ -63,7 +72,7 @@ void GazeboRosRealsense::OnNewFrame(const rendering::CameraPtr cam,
   const auto image_pub = camera_publishers.at(camera_id);
 
   // copy data into image
-  this->image_msg_.header.frame_id = camera_id;
+  this->image_msg_.header.frame_id = prefix_+camera_id;
   this->image_msg_.header.stamp.sec = current_time.sec;
   this->image_msg_.header.stamp.nsec = current_time.nsec;
 
@@ -101,7 +110,7 @@ void GazeboRosRealsense::OnNewDepthFrame()
   RealSensePlugin::OnNewDepthFrame();
 
   // copy data into image
-  this->depth_msg_.header.frame_id = COLOR_CAMERA_NAME;
+  this->depth_msg_.header.frame_id = prefix_+COLOR_CAMERA_NAME;
   this->depth_msg_.header.stamp.sec = current_time.sec;
   this->depth_msg_.header.stamp.nsec = current_time.nsec;
 

@@ -57,6 +57,15 @@ void RealSensePlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
             << "RealSensePlugin: The realsense_camera plugin is attach to model "
             << _model->GetName() << std::endl;
 
+  this->prefix_ = "";
+  if (!_sdf->HasElement("prefix")) {
+    std::cout << "Missing parameter <prefix> in PluginName, default to 'empty string'" << std::endl;
+  } else {
+    this->prefix_ = _sdf->GetElement("prefix")->Get< std::string >();
+    std::cout << "Using prefix " << this->prefix_ << std::endl;
+  }
+  this->topic_ = prefix_+"realsense";
+
   // Store a pointer to the this model
   this->rsModel = _model;
 
@@ -66,18 +75,22 @@ void RealSensePlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   // Sensors Manager
   sensors::SensorManager *smanager = sensors::SensorManager::Instance();
 
+  this->depth_name_ = this->prefix_ + DEPTH_CAMERA_NAME;
+  this->ir1_name_ = this->prefix_ + IRED1_CAMERA_NAME;
+  this->ir2_name_ = this->prefix_ + IRED2_CAMERA_NAME;
+  this->color_name_ = this->prefix_ + COLOR_CAMERA_NAME;
+
   // Get Cameras Renderers
-  this->depthCam =
-      std::dynamic_pointer_cast<sensors::DepthCameraSensor>(
-          smanager->GetSensor(DEPTH_CAMERA_NAME))->DepthCamera();
+  this->depthCam = std::dynamic_pointer_cast<sensors::DepthCameraSensor>(
+          smanager->GetSensor(this->depth_name_))->DepthCamera();
   this->ired1Cam = std::dynamic_pointer_cast<sensors::CameraSensor>(
-                                smanager->GetSensor(IRED1_CAMERA_NAME))
+                                smanager->GetSensor(this->ir1_name_))
                                 ->Camera();
   this->ired2Cam = std::dynamic_pointer_cast<sensors::CameraSensor>(
-                                smanager->GetSensor(IRED2_CAMERA_NAME))
+                                smanager->GetSensor(this->ir2_name_))
                                 ->Camera();
   this->colorCam = std::dynamic_pointer_cast<sensors::CameraSensor>(
-                                smanager->GetSensor(COLOR_CAMERA_NAME))
+                                smanager->GetSensor(this->color_name_))
                                 ->Camera();
 
   // Check if camera renderers have been found successfuly

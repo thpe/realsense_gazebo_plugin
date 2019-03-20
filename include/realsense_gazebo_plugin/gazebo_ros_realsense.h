@@ -47,6 +47,10 @@ namespace gazebo
 
     /// \brief ROS image messages
     protected: sensor_msgs::Image image_msg_, depth_msg_;
+
+    private:
+      std::string topic_;
+      std::string prefix_;
   };
 }
 #endif /* _GAZEBO_ROS_REALSENSE_PLUGIN_ */

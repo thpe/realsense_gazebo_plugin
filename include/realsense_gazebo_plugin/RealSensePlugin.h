@@ -111,6 +111,15 @@ namespace gazebo
 
     /// \brief Pointer to the World Update event connection.
     protected: event::ConnectionPtr updateConnection;
+
+    protected: std::string prefix_;
+
+    protected: std::string topic_;
+
+    protected: std::string depth_name_;
+    protected: std::string ir1_name_;
+    protected: std::string ir2_name_;
+    protected: std::string color_name_;
   };
 }
 #endif
